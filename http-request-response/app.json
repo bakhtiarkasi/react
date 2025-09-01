@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "little-lemon-final-project",
-    "slug": "snack-1d18903d-ff51-44f2-bb40-c31d49a63b22",
+    "name": "http-request-response",
+    "slug": "snack-509898f3-00e8-4147-b88a-367b84a2ef9d",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,13 +11,19 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FFFFFF"
       }
     },
     "web": {

@@ -1,73 +1,109 @@
-import * as React from "react";
-import {Alert, Image, StyleSheet, Text, TextInput, View} from "react-native";
-import Button from "../components/Button";
-import {validateEmail} from "../utils";
+import { useState } from 'react';
+import {
+  View,
+  Image,
+  Text,
+  Pressable,
+  TextInput,
+  StyleSheet,
+  Alert,
+  Keyboard,
+} from 'react-native';
+
+import { validateEmail } from '../utils/index';
 
 const SubscribeScreen = () => {
-  const [email, setEmail] = React.useState('');
+  const [email, onEmailTextChanged] = useState('');
+  const [isDisabled, setIsDisabled] = useState(true);
 
-  const isEmailValid = validateEmail(email);
+  const handleEmailChange = (email) => {
+    onEmailTextChanged(email);
+    if (validateEmail(email)) {
+      setIsDisabled(false);
+    } else {
+      setIsDisabled(true);
+    }
+  };
+
+  const handlePress = () => {
+    // Dismiss the keyboard first
+    Keyboard.dismiss();
+
+    Alert.alert('Thanks for subscribing, stay tuned!');
+
+    onEmailTextChanged('');
+    setIsDisabled(true);
+  };
 
   return (
     <View style={styles.container}>
       <Image
-        style={styles.logo}
-        source={require("../assets/little-lemon-logo-grey.png")}
-      />
-      <Text style={styles.title}>
+        resizeMode="contain"
+        style={styles.imageIcon}
+        accessible={true}
+        accessibilityLabel={'Little Lemon Logo'}
+        source={require('../img/little-lemon-logo-grey.png')}></Image>
+      <Text style={styles.headerText}>
         Subscribe to our newsletter for our latest delicious recipes!
       </Text>
       <TextInput
-        style={styles.input}
+        style={styles.textInput}
         value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        textContentType="emailAddress"
-        placeholder={"Type your email"}
-      />
-      <Button
-        onPress={() => {
-          // Alert.alert doesn't work on web, use window.alert for web
-          if (typeof window !== 'undefined' && window.alert) {
-            window.alert("Thanks for subscribing, stay tuned!");
-          } else {
-            Alert.alert("Thanks for subscribing, stay tuned!");
-          }
-        }}
-        disabled={!isEmailValid}
-      >
-        Subscribe
-      </Button>
+        placeholder={'Type your email'}
+        onChangeText={handleEmailChange}
+        keyboardType={'email-address'}></TextInput>
+      <Pressable
+        disabled={isDisabled}
+        style={() => [styles.button, isDisabled && styles.buttonDisabled]}
+        onPress={handlePress}>
+        <Text style={styles.buttonText}>Subscribe</Text>
+      </Pressable>
     </View>
   );
 };
 
+export default SubscribeScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
-    backgroundColor: "white",
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
   },
-  title: {
-    color: "#333333",
-    textAlign: "center",
+  imageIcon: {
+    height: 160,
+    width: 120,
+    borderRadius: 10,
+    margin: 5,
+  },
+  headerText: {
+    marginHorizontal: 30,
+    fontSize: 22,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    marginTop: 3,
+  },
+  button: {
+    padding: 15,
+    backgroundColor: '#3E524B',
+    borderRadius: 10,
+    width: '80%',
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
     fontSize: 20,
   },
-  logo: {
-    height: 100,
-    width: 300,
-    resizeMode: "contain",
-    marginBottom: 32,
+  textInput: {
+    borderWidth: 2,
+    padding: 15,
+    fontSize: 20,
+    borderColor: '#3E524B',
+    width: '80%',
+    borderRadius: 10,
+    margin: 30,
   },
-  input: {
-    height: 40,
-    marginVertical: 24,
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 10,
-    fontSize: 16,
-    borderColor: "EDEFEE",
+  buttonDisabled: {
+    opacity: 0.5,
   },
 });
-
-export default SubscribeScreen;
