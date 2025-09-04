@@ -1,7 +1,11 @@
 import * as React from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet, Alert } from 'react-native';
 import Constants from 'expo-constants';
 import { Switch } from 'react-native-paper';
+import { useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import useUpdate from './useUpdate';
 
 export default function App() {
   const [preferences, setPreferences] = React.useState({
@@ -9,6 +13,43 @@ export default function App() {
     emailMarketing: false,
     latestNews: false,
   });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const keys = ['pushNotifications', 'emailMarketing', 'latestNews'];
+        const values = await AsyncStorage.multiGet(keys);
+
+        // Create object from the results
+        const preferences = {};
+        values.forEach(([key, value]) => {
+          preferences[key] = value === 'true';
+        });
+
+        setPreferences(preferences);
+      } catch (e) {
+        Alert.alert(`An error occurred: ${e.message}`);
+      }
+    })();
+  }, []);
+
+   useUpdate(() => {
+    (async () => {
+      try {
+        const multiSet = [
+          [
+            'pushNotifications',
+            preferences.pushNotifications ? 'true' : 'false',
+          ],
+          ['emailMarketing', preferences.emailMarketing ? 'true' : 'false'],
+          ['latestNews', preferences.latestNews ? 'true' : 'false'],
+        ];
+        await AsyncStorage.multiSet(multiSet);
+      } catch (e) {
+        Alert.alert(`An error occurred: ${e.message}`);
+      }
+    })();
+  }, [preferences]);
 
   const updateState = (key) => () =>
     setPreferences((prevState) => ({
