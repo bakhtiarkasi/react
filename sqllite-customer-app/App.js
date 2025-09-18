@@ -17,7 +17,7 @@ import {
 } from 'react-native-paper';
 import asyncAlert from './asyncAlert';
 
-const db = SQLite.openDatabase('little_lemon');
+const db = SQLite.openDatabase('little_lemmon');
 
 export default function App() {
   const [textInputValue, setTextInputValue] = useState('');
@@ -53,8 +53,23 @@ export default function App() {
       isVisible: false,
       customer: {},
     });
+    
     // 1. Set the new local customer state
+    setCustomers((prev) =>
+      prev.map((customer) =>
+        customer.uid === updatedCustomer.uid
+          ? { ...customer, name: updatedCustomer.name }
+          : customer
+      )
+    );
+
     // 2. Create a SQL transaction to edit a customer. Make sure if two names are the same, only the selected item is deleted
+    db.transaction((tx) => {
+      tx.executeSql('update customers set name = ? where uid = ?', [
+        updatedCustomer.name,
+        updatedCustomer.uid,
+      ]);
+    });
   };
 
   const deleteCustomer = async (customer) => {
@@ -65,8 +80,16 @@ export default function App() {
     if (!shouldDelete) {
       return;
     }
+
     // 1. Set the new local customer state
+    setCustomers((prev) => prev.filter((cust) => cust.uid !== customer.uid));
+    
     // 2. Create a SQL transaction to delete a customer. Make sure if two names are the same, only the selected item is deleted
+    db.transaction((tx) => {
+      tx.executeSql('delete from customers where uid = ?', [
+        customer.uid
+      ]);
+    });
   };
 
   return (
