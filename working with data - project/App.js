@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Searchbar } from 'react-native-paper';
 import debounce from 'lodash.debounce';
@@ -37,15 +38,28 @@ export default function App() {
   const [filterSelections, setFilterSelections] = useState(
     sections.map(() => false)
   );
+  const [isLoading, setLoading] = useState(true);
 
-  const fetchData = async() => {
+  const fetchData = async () => {
     // 1. Implement this function
-    
     // Fetch the menu from the API_URL endpoint. You can visit the API_URL in your browser to inspect the data returned
     // The category field comes as an object with a property called "title". You just need to get the title value and set it under the key "category".
     // So the server response should be slighly transformed in this function (hint: map function) to flatten out each menu item in the array,
+    try {
+      const response = await fetch(API_URL);
+      const jsonMenu = await response.json();
+
+      return jsonMenu.menu.map((menuitem) => ({
+        ...menuitem,
+        category: menuitem.category.title,
+      }));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
     return [];
-  }
+  };
 
   useEffect(() => {
     (async () => {
@@ -57,12 +71,26 @@ export default function App() {
         // and then stores it into a SQLite database.
         // After that, every application restart loads the menu from the database
         if (!menuItems.length) {
-          const menuItems = await fetchData();
+          menuItems = await fetchData();
           saveMenuItems(menuItems);
         }
-
         const sectionListData = getSectionListData(menuItems);
         setData(sectionListData);
+        
+        /*
+        const now = new Date();
+        // Extract hours, minutes, and seconds
+        const hours = now.getHours().toString().padStart(2, '0'); // Pad with leading zero if single digit
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+
+        console.log(
+          `Section List data is here in get menu: ${hours}:${minutes}:${seconds} with len: ${
+            sectionListData.length
+          } and data: ${JSON.stringify(sectionListData)} `
+        );*/
+
+        setLoading(false);
       } catch (e) {
         // Handle error
         Alert.alert(e.message);
@@ -86,6 +114,20 @@ export default function App() {
         );
         const sectionListData = getSectionListData(menuItems);
         setData(sectionListData);
+        
+        /*const now = new Date();
+        // Extract hours, minutes, and seconds
+        const hours = now.getHours().toString().padStart(2, '0'); // Pad with leading zero if single digit
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+
+        console.log(
+          `Section List data is here in filter menu: ${hours}:${minutes}:${seconds} with len: ${
+            sectionListData.length
+          } and data: ${JSON.stringify(sectionListData)} `
+        );*/
+
+        
       } catch (e) {
         Alert.alert(e.message);
       }
@@ -126,17 +168,21 @@ export default function App() {
         onChange={handleFiltersChange}
         sections={sections}
       />
-      <SectionList
-        style={styles.sectionList}
-        sections={data}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <Item title={item.title} price={item.price} />
-        )}
-        renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.header}>{title}</Text>
-        )}
-      />
+      {isLoading ? (
+        <ActivityIndicator />
+      ) : (
+        <SectionList
+          style={styles.sectionList}
+          sections={data}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <Item title={item.title} price={item.price} />
+          )}
+          renderSectionHeader={({ section: { title } }) => (
+            <Text style={styles.header}>{title}</Text>
+          )}
+        />
+      )}
     </SafeAreaView>
   );
 }

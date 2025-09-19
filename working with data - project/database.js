@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { SECTION_LIST_MOCK_DATA } from './utils';
+import { SECTION_LIST_MOCK_DATA, getSectionListData} from './utils';
 
 const db = SQLite.openDatabase('little_lemon');
 
@@ -20,20 +20,52 @@ export async function createTable() {
 export async function getMenuItems() {
   return new Promise((resolve) => {
     db.transaction((tx) => {
-      tx.executeSql('select * from menuitems', [], (_, { rows }) => {
-        resolve(rows._array);
-      });
+      tx.executeSql(
+        'select * from menuitems',
+        [],
+        (_, { rows }) => {
+         const sections = getSectionListData(rows._array);
+         resolve(rows._array);
+         return sections;
+        }
+      );
     });
   });
 }
 
 export function saveMenuItems(menuItems) {
-  db.transaction((tx) => {
-    // 2. Implement a single SQL statement to save all menu data in a table called menuitems.
-    // Check the createTable() function above to see all the different columns the table has
-    // Hint: You need a SQL statement to insert multiple rows at once.
-  });
+  db.transaction(
+    (tx) => {
+      // 2. Implement a single SQL statement to save all menu data in a table called menuitems.
+      // Check the createTable() function above to see all the different columns the table has
+      // Hint: You need a SQL statement to insert multiple rows at once.
+      menuItems.forEach((item) => {
+        tx.executeSql(
+          'insert into menuitems(id, uuid, title, price, category) values(?,?,?,?,?)',
+          [
+            item.id,
+            Date.now().toString(),
+            item.title,
+            item.price,
+            item.category,
+          ],
+         // (_, result) => console.log('Insert successful:', result),
+         // (_, error) => console.error('Insert error:', error)
+        );
+      });
+    },
+    (error) => console.error('Transaction error:', error),
+    () => console.log('Transaction complete')
+  );
 }
+
+/*
+insert into menuitems (uuid, title, price, category) values ${menuItems
+ .map((item) =>
+   `('${item.id}', '${item.title}', '${item.price}', '${item.category}')`)
+    	.join(', ')}
+
+*/
 
 /**
  * 4. Implement a transaction that executes a SQL statement to filter the menu by 2 criteria:
@@ -56,7 +88,21 @@ export function saveMenuItems(menuItems) {
  *
  */
 export async function filterByQueryAndCategories(query, activeCategories) {
-  return new Promise((resolve, reject) => {
-    resolve(SECTION_LIST_MOCK_DATA);
+  
+  return new Promise((resolve) => {
+    db.transaction((tx) => {
+      
+      query = '%' + query + '%';
+      const placeholders = activeCategories.map(() => '?').join(', ');
+      tx.executeSql(
+        `select * from menuitems where title like ? and category in (${placeholders})`,
+        [query, ...activeCategories],
+        (_, { rows }) => {
+         const sections = getSectionListData(rows._array);
+         resolve(rows._array);
+         return sections;
+        }
+      );
+    });
   });
 }

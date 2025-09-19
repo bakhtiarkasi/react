@@ -44,8 +44,21 @@ export function getSectionListData(data) {
   // The title of each section should be the category.
   // The data property should contain an array of menu items. 
   // Each item has the following properties: "id", "title" and "price"
-  return SECTION_LIST_MOCK_DATA;
+  const groups = {};
+  
+  data.forEach(({ category, ...item }) => {
+    
+    if (!groups[category]) 
+      groups[category] = [];
+
+
+    groups[category].push(item);
+    
+  });
+
+  return Object.entries(groups).map(([title, data]) => ({ title, data }));
 }
+
 
 export function useUpdateEffect(effect, dependencies = []) {
   const isInitialMount = useRef(true);
