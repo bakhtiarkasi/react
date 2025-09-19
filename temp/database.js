@@ -1,14 +1,14 @@
-import * as SQLite from "expo-sqlite";
-import { SECTION_LIST_MOCK_DATA } from "./utils";
+import * as SQLite from 'expo-sqlite';
+import { SECTION_LIST_MOCK_DATA } from './utils';
 
-const db = SQLite.openDatabase("little_lemon");
+const db = SQLite.openDatabase('little_lemon');
 
 export async function createTable() {
   return new Promise((resolve, reject) => {
     db.transaction(
       (tx) => {
         tx.executeSql(
-          "create table if not exists menuitems (id integer primary key not null, uuid text, title text, price text, category text);"
+          'create table if not exists menuitems (id integer primary key not null, uuid text, title text, price text, category text);'
         );
       },
       reject,
@@ -20,7 +20,7 @@ export async function createTable() {
 export async function getMenuItems() {
   return new Promise((resolve) => {
     db.transaction((tx) => {
-      tx.executeSql("select * from menuitems", [], (_, { rows }) => {
+      tx.executeSql('select * from menuitems', [], (_, { rows }) => {
         resolve(rows._array);
       });
     });
@@ -29,35 +29,27 @@ export async function getMenuItems() {
 
 export function saveMenuItems(menuItems) {
   db.transaction((tx) => {
-    // 2. Implement a single SQL statement to save all menu data in a table called menuitems.
-    // Check the createTable() function above to see all the different columns the table has
-    // Hint: You need a SQL statement to insert multiple rows at once.
-    if (!menuItems || menuItems.length === 0) return;
-
-    // Build placeholders for each row (?,?,?,?)
-    const placeholders = menuItems.map(() => "(?, ?, ?, ?)").join(", ");
-
-    // Flatten values into a single array
-    const values = menuItems.flatMap((item) => [
-      item.id,
+    const values = menuItems.flatMap(item => [
+      item.id.toString(), // uuid
       item.title,
-      item.price,
-      item.category,
+      item.price.toString(),
+      item.category
     ]);
-    // Final SQL
-    const query = `INSERT OR REPLACE INTO menuitems (id, title, price, category) VALUES ${placeholders}`;
+
+    const placeholders = menuItems.map(() => '(?, ?, ?, ?)').join(', ');
 
     tx.executeSql(
-      query,
+      `INSERT INTO menuitems (uuid, title, price, category) VALUES ${placeholders};`,
       values,
-      () => console.log("Menu items saved successfully"),
+      () => console.log('Menu items saved successfully.'),
       (_, error) => {
-        console.error("Failed to save menu items", error);
-        return false; // signal error
+        console.error('Error saving menu items:', error);
+        return true; // signal error handled
       }
     );
   });
 }
+
 
 /**
  * 4. Implement a transaction that executes a SQL statement to filter the menu by 2 criteria:
@@ -81,36 +73,25 @@ export function saveMenuItems(menuItems) {
  */
 export async function filterByQueryAndCategories(query, activeCategories) {
   return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
-      // Build SQL base
-      let sql = "SELECT * FROM menuitems WHERE 1=1";
-      const params = [];
+    db.transaction(tx => {
+      const categoryPlaceholders = activeCategories.map(() => '?').join(', ');
+      const sql = `
+        SELECT * FROM menuitems
+        WHERE title LIKE ? AND category IN (${categoryPlaceholders})
+      `;
 
-      // Apply query filter
-      if (query && query.trim() !== "") {
-        sql += " AND title LIKE ?";
-        params.push(`%${query}%`);
-      }
-
-      // Apply category filter (if any selected)
-      if (activeCategories && activeCategories.length > 0) {
-        const placeholders = activeCategories.map(() => "?").join(", ");
-        sql += ` AND category IN (${placeholders})`;
-        params.push(...activeCategories);
-      }
+      const params = [`%${query}%`, ...activeCategories];
 
       tx.executeSql(
         sql,
         params,
-        (_, { rows }) => {
-          resolve(rows._array);
-        },
+        (_, { rows }) => resolve(rows._array),
         (_, error) => {
-          console.error("Filter query failed:", error);
+          console.error('Error filtering menu items:', error);
           reject(error);
-          return false;
         }
       );
     });
   });
 }
+
