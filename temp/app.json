@@ -1,18 +1,21 @@
 {
   "expo": {
-    "name": "m5-lab",
-    "slug": "snack-d8d527bb-7632-4f59-b8b4-3a9fa1b97a43",
+    "name": "little-lemon-app",
+    "owner": "marventures",
+    "slug": "little-lemon-app",
+    "description": "This application is a React Native Food App. Users will have to go through a registration process. Once they successfully complete that phase, they are redirected to a home screen where they can search and filter menu items. User can also change their preferences in Profile page",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Logo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/Logo-splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/221d2bc0-e34d-4538-b828-2e1cabe5bba7"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -22,12 +25,20 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Logo.png",
         "backgroundColor": "#FFFFFF"
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/Logo.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "221d2bc0-e34d-4538-b828-2e1cabe5bba7"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
     }
   }
 }

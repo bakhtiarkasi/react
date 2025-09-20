@@ -1,14 +1,13 @@
-import * as SQLite from 'expo-sqlite';
-import { SECTION_LIST_MOCK_DATA } from './utils';
+import * as SQLite from "expo-sqlite";
 
-const db = SQLite.openDatabase('little_lemon');
+const db = SQLite.openDatabase("little_lemon");
 
 export async function createTable() {
   return new Promise((resolve, reject) => {
     db.transaction(
-      (tx) => {
+      tx => {
         tx.executeSql(
-          'create table if not exists menuitems (id integer primary key not null, uuid text, title text, price text, category text);'
+          "create table if not exists menuitems (id integer primary key not null, name text, price text, description text, image text, category text);"
         );
       },
       reject,
@@ -18,9 +17,9 @@ export async function createTable() {
 }
 
 export async function getMenuItems() {
-  return new Promise((resolve) => {
-    db.transaction((tx) => {
-      tx.executeSql('select * from menuitems', [], (_, { rows }) => {
+  return new Promise(resolve => {
+    db.transaction(tx => {
+      tx.executeSql("select * from menuitems", [], (_, { rows }) => {
         resolve(rows._array);
       });
     });
@@ -28,70 +27,31 @@ export async function getMenuItems() {
 }
 
 export function saveMenuItems(menuItems) {
-  db.transaction((tx) => {
-    const values = menuItems.flatMap(item => [
-      item.id.toString(), // uuid
-      item.title,
-      item.price.toString(),
-      item.category
-    ]);
-
-    const placeholders = menuItems.map(() => '(?, ?, ?, ?)').join(', ');
-
-    tx.executeSql(
-      `INSERT INTO menuitems (uuid, title, price, category) VALUES ${placeholders};`,
-      values,
-      () => console.log('Menu items saved successfully.'),
-      (_, error) => {
-        console.error('Error saving menu items:', error);
-        return true; // signal error handled
-      }
-    );
-  });
-}
-
-
-/**
- * 4. Implement a transaction that executes a SQL statement to filter the menu by 2 criteria:
- * a query string and a list of categories.
- *
- * The query string should be matched against the menu item titles to see if it's a substring.
- * For example, if there are 4 items in the database with titles: 'pizza, 'pasta', 'french fries' and 'salad'
- * the query 'a' should return 'pizza' 'pasta' and 'salad', but not 'french fries'
- * since the latter does not contain any 'a' substring anywhere in the sequence of characters.
- *
- * The activeCategories parameter represents an array of selected 'categories' from the filter component
- * All results should belong to an active category to be retrieved.
- * For instance, if 'pizza' and 'pasta' belong to the 'Main Dishes' category and 'french fries' and 'salad' to the 'Sides' category,
- * a value of ['Main Dishes'] for active categories should return  only'pizza' and 'pasta'
- *
- * Finally, the SQL statement must support filtering by both criteria at the same time.
- * That means if the query is 'a' and the active category 'Main Dishes', the SQL statement should return only 'pizza' and 'pasta'
- * 'french fries' is excluded because it's part of a different category and 'salad' is excluded due to the same reason,
- * even though the query 'a' it's a substring of 'salad', so the combination of the two filters should be linked with the AND keyword
- *
- */
-export async function filterByQueryAndCategories(query, activeCategories) {
-  return new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      const categoryPlaceholders = activeCategories.map(() => '?').join(', ');
-      const sql = `
-        SELECT * FROM menuitems
-        WHERE title LIKE ? AND category IN (${categoryPlaceholders})
-      `;
-
-      const params = [`%${query}%`, ...activeCategories];
-
+  // Use parameterized inserts for safety and proper escaping
+  db.transaction(tx => {
+    menuItems.forEach(item => {
       tx.executeSql(
-        sql,
-        params,
-        (_, { rows }) => resolve(rows._array),
-        (_, error) => {
-          console.error('Error filtering menu items:', error);
-          reject(error);
-        }
+        `insert into menuitems (id, name, price, description, image, category) values (?, ?, ?, ?, ?, ?)`,
+        [item.id, item.name, item.price, item.description, item.image, item.category]
       );
     });
   });
 }
 
+export async function filterByQueryAndCategories(query, activeCategories) {
+  return new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      // Build placeholders for the IN clause and bind parameters
+      const placeholders = activeCategories.map(() => '?').join(',');
+      const sql = `select * from menuitems where name like ? and category in (${placeholders})`;
+      const params = [`%${query}%`, ...activeCategories];
+      tx.executeSql(
+        sql,
+        params,
+        (_, { rows }) => {
+          resolve(rows._array);
+        }
+      );
+    }, reject);
+  });
+}
