@@ -1,18 +1,17 @@
-import { FontSize, Radius, Spacing } from "@/constants/theme";
+import { AppButton } from "@/components/AppButton";
+import { AppInput } from "@/components/AppInput";
+import { Screen } from "@/components/Screen";
+import { FontSize, Spacing } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/use-theme";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   StyleSheet,
   Text,
-  TextInput,
-  View,
 } from "react-native";
 
 export default function LoginScreen() {
@@ -42,82 +41,43 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.screen, { backgroundColor: theme.background }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <View style={styles.container}>
+    <Screen testID="login-screen">
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <Text style={[styles.title, { color: theme.text }]}>Rent Ledger</Text>
         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
           Sign in to manage rent collection and approvals.
         </Text>
 
-        <Text style={[styles.label, { color: theme.text }]}>Email</Text>
-
-        <TextInput
+        <AppInput
+          label="Email"
           value={email}
           onChangeText={setEmail}
           placeholder="Enter email"
           autoCapitalize="none"
           keyboardType="email-address"
-          placeholderTextColor={theme.textSecondary}
-          style={[
-            styles.input,
-            {
-              color: theme.text,
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
-            },
-          ]}
         />
 
-        <Text style={[styles.label, { color: theme.text }]}>Password</Text>
-
-        <TextInput
+        <AppInput
+          label="Password"
           value={password}
           onChangeText={setPassword}
           placeholder="Enter password"
           secureTextEntry
-          placeholderTextColor={theme.textSecondary}
-          style={[
-            styles.input,
-            {
-              color: theme.text,
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
-            },
-          ]}
         />
-
-        <Pressable
-          onPress={handleLogin}
-          disabled={loading}
-          style={[
-            styles.button,
-            { backgroundColor: loading ? theme.disabled : theme.primary },
-          ]}
-        >
-          {loading ? (
-            <ActivityIndicator color={theme.primaryText} />
-          ) : (
-            <Text style={[styles.buttonText, { color: theme.primaryText }]}>
-              Login
-            </Text>
-          )}
-        </Pressable>
-      </View>
-    </KeyboardAvoidingView>
+        <AppButton onPress={handleLogin} title="Login" loading={loading} />
+      </KeyboardAvoidingView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
+  keyboardContainer: {
     flex: 1,
-  },
-  container: {
-    flex: 1,
+    width: "100%",
     justifyContent: "center",
-    paddingHorizontal: Spacing.lg,
   },
   title: {
     fontSize: FontSize.xl,
@@ -127,24 +87,5 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: FontSize.md,
     marginBottom: Spacing.xl,
-  },
-  label: {
-    marginBottom: Spacing.sm,
-    fontWeight: "600",
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: Radius.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  button: {
-    borderRadius: Radius.sm,
-    paddingVertical: Spacing.md,
-    alignItems: "center",
-  },
-  buttonText: {
-    fontWeight: "700",
   },
 });
