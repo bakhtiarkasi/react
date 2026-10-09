@@ -25,7 +25,7 @@ export default function PropertiesScreen() {
   const [error, setError] = useState<string | undefined>();
   const router = useRouter();
 
-  //load properties
+  //load properties in past it was: async function loadProperties() {
   const loadProperties = useCallback(async () => {
     try {
       setLoading(true);

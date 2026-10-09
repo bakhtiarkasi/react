@@ -42,9 +42,7 @@ export default function EditPropertyScreen() {
     try {
       setLoading(true);
       setError(undefined);
-
       const data = await getProperty(id);
-
       setName(data.name);
       setAddress(data.address ?? "");
       setNotes(data.notes ?? "");
@@ -215,6 +213,18 @@ export default function EditPropertyScreen() {
           title="Cancel"
           variant="secondary"
           onPress={() => router.back()}
+        />
+        <AppButton
+          title="View Units"
+          variant="secondary"
+          onPress={() => {
+            router.push({
+              pathname: "/(admin)/properties/[propertyId]/units",
+              params: {
+                propertyId: id,
+              },
+            });
+          }}
         />
       </KeyboardAvoidingView>
     </Screen>
