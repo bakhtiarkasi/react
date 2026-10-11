@@ -30,6 +30,10 @@ to authenticated;
 
 
 -- RLA for User profiles 
+
+alter table public.user_profiles
+enable row level security;
+
 -- users can read their own profile only
 create policy "Users can read own profile"
 on public.user_profiles
@@ -75,6 +79,7 @@ with check (
 );
 
 -- admin can update properties
+-- UPDATE statements use both USING and WITH CHECK because an update is a two-step process: it reads an existing row, and then it writes the new modified row.
 create policy "Admins can update properties"
 on public.properties
 for update
@@ -88,7 +93,7 @@ with check (
 
 
 
---- RLA to Secure units 
+--- RLS to Secure units 
 alter table public.units
 enable row level security;
 
@@ -124,6 +129,42 @@ with check (
 );
 
 
+--- RLS to Secure tenants 
+alter table public.tenants
+enable row level security;
+
+
+-- staff can read tenant
+create policy "Staff can read tenants"
+on public.tenants
+for select
+to authenticated
+using (
+  (select private.current_user_role())
+    in ('admin', 'collector', 'support')
+);
+
+-- admin can create new tenants
+create policy "Admins can create tenants"
+on public.tenants
+for insert
+to authenticated
+with check (
+  (select private.current_user_role()) = 'admin'
+);
+
+-- admin can update tenants
+create policy "Admins can update tenants"
+on public.tenants
+for update
+to authenticated
+using (
+  (select private.current_user_role()) = 'admin'
+)
+with check (
+  (select private.current_user_role()) = 'admin'
+);
+
 
 --- PostgreSQL grants
 --- A grant answers: Is the authenticated database role allowed to attempt this operation at all?
@@ -133,7 +174,8 @@ with check (
 revoke all
 on public.user_profiles,
    public.properties,
-   public.units
+   public.units,
+   public.tenants
 from anon;
 
 -- For profiles: We deliberately grant only the operations the application needs.
@@ -147,11 +189,13 @@ to authenticated;
 -- For properties and units:
 revoke all
 on public.properties,
-   public.units
+   public.units,
+   public.tenants
 from authenticated;
 
 -- grant everything except delete
 grant select, insert, update
 on public.properties,
-   public.units
+   public.units,
+   public.tenants
 to authenticated;

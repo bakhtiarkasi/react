@@ -50,4 +50,23 @@ create table public.units (
 ) TABLESPACE pg_default;
 
 
+create table public.tenants (
+  id uuid not null default gen_random_uuid(),
+  full_name text not null,
+  father_name text null,
+  cnic text null,
+  phone text null,
+  alternate_phone text null,
+  permanent_address text null,
+  notes text null,
+  is_active boolean not null default true, 
+  created_at timestamp with time zone not null default now(),
+  constraint tenants_pkey primary key (id)
+) TABLESPACE pg_default;
+
+-- 2. Define the conditional unique index immediately after
+create unique index tenant_cnic_unique 
+on public.tenants (cnic) 
+where cnic is not null;
+
 
