@@ -67,3 +67,8 @@ export type UpdateUnitInput = {
   description: string | null;
   operational_status: UnitOperationalStatus;
 };
+
+export type AvailableUnitType = Pick<
+  Unit,
+  "id" | "property_id" | "unit_code" | "unit_type"
+>;

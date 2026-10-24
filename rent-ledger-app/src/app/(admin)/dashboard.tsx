@@ -42,6 +42,15 @@ export default function AdminDashboard() {
         }}
       ></AppButton>
 
+      <AppButton
+        title="Go to Leases"
+        variant="primary"
+        loading={false}
+        onPress={() => {
+          router.push("/(admin)/leases");
+        }}
+      ></AppButton>
+
       <Pressable
         onPress={signOut}
         style={{

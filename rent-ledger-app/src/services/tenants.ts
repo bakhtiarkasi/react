@@ -90,3 +90,19 @@ export async function setTenantActive(id: string, isActive: boolean) {
   }
   return data;
 }
+
+export async function getActiveTenants() {
+  const { data, error } = await supabase
+    .from("tenants")
+    .select(
+      "id, full_name, father_name, cnic, phone, alternate_phone, permanent_address, notes, is_active, created_at",
+    )
+    .eq("is_active", true)
+    .order("full_name");
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}

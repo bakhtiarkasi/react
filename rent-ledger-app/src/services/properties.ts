@@ -74,3 +74,17 @@ export async function setPropertyActive(id: string, isActive: boolean) {
   }
   return data;
 }
+
+export async function getActiveProperties() {
+  const { data, error } = await supabase
+    .from("properties")
+    .select("id, name, address, notes, is_active, created_at")
+    .eq("is_active", true)
+    .order("name");
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}

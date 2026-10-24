@@ -165,6 +165,78 @@ with check (
   (select private.current_user_role()) = 'admin'
 );
 
+-- RLS for leases table
+alter table public.leases
+enable row level security;
+
+-- staff can read leases
+create policy "Staff can read leases"
+on public.leases
+for select
+to authenticated
+using (
+  (select private.current_user_role())
+    in ('admin', 'collector', 'support')
+);
+
+-- admin can create new leases
+create policy "Admins can create leases"
+on public.leases
+for insert
+to authenticated
+with check (
+  (select private.current_user_role()) = 'admin'
+);
+
+-- admin can update leases
+create policy "Admins can update leases"
+on public.leases
+for update
+to authenticated
+using (
+  (select private.current_user_role()) = 'admin'
+)
+with check (
+  (select private.current_user_role()) = 'admin'
+);
+
+
+
+-- RLA for rent rates
+alter table public.rent_rates
+enable row level security;
+
+-- staff can read rent_rates
+create policy "Staff can read rent rates"
+on public.rent_rates
+for select
+to authenticated
+using (
+  (select private.current_user_role())
+    in ('admin', 'collector', 'support')
+);
+
+-- admin can create new rent rates
+create policy "Admins can create rent rates"
+on public.rent_rates
+for insert
+to authenticated
+with check (
+  (select private.current_user_role()) = 'admin'
+);
+
+-- admin can update rent rates
+create policy "Admins can update rent rates"
+on public.rent_rates
+for update
+to authenticated
+using (
+  (select private.current_user_role()) = 'admin'
+)
+with check (
+  (select private.current_user_role()) = 'admin'
+);
+
 
 --- PostgreSQL grants
 --- A grant answers: Is the authenticated database role allowed to attempt this operation at all?
@@ -175,7 +247,9 @@ revoke all
 on public.user_profiles,
    public.properties,
    public.units,
-   public.tenants
+   public.tenants,
+   public.leases,
+   public.rent_rates
 from anon;
 
 -- For profiles: We deliberately grant only the operations the application needs.
@@ -190,12 +264,16 @@ to authenticated;
 revoke all
 on public.properties,
    public.units,
-   public.tenants
+   public.tenants,
+   public.leases,
+   public.rent_rates
 from authenticated;
 
 -- grant everything except delete
 grant select, insert, update
 on public.properties,
    public.units,
-   public.tenants
+   public.tenants,
+   public.leases,
+   public.rent_rates
 to authenticated;
